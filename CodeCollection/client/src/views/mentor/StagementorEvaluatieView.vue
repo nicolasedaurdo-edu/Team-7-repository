@@ -74,7 +74,7 @@
               class="col-score"
               v-for="optie in scoreOpties"
               :key="optie.waarde"
-              :class="{ geselecteerd: Number(getMentorEvaluatie(competentie.id)?.score) === optie.waarde }"
+              :class="{ geselecteerd: getMentorEvaluatie(competentie.id)?.score !== null && getMentorEvaluatie(competentie.id)?.score !== undefined && Number(getMentorEvaluatie(competentie.id)?.score) === optie.waarde }"
               @click="!opgeslagen[competentie.id] && setScore(competentie.id, optie.waarde)"
             >
               <p class="optie-beschrijving">{{ optie.beschrijving }}</p>
@@ -82,7 +82,7 @@
                 type="radio"
                 :name="'score-' + competentie.id"
                 :value="optie.waarde"
-                :checked="Number(getMentorEvaluatie(competentie.id)?.score) === optie.waarde"
+                :checked="getMentorEvaluatie(competentie.id)?.score !== null && getMentorEvaluatie(competentie.id)?.score !== undefined && Number(getMentorEvaluatie(competentie.id)?.score) === optie.waarde"
                 :disabled="opgeslagen[competentie.id]"
                 @change="setScore(competentie.id, optie.waarde)"
               />

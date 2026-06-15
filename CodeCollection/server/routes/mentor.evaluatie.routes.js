@@ -77,7 +77,7 @@ router.post('/evaluaties', requireAuth, requireMentor, async (req, res) => {
   const mentorId = req.user.id;
   const { competentie_id, type, score, feedback } = req.body;
 
-  if (!competentie_id || !type || !feedback) {
+  if (!competentie_id || !type || !feedback || score === undefined) {
     return res.status(400).json({ error: 'competentie_id, type en feedback zijn verplicht' });
   }
 

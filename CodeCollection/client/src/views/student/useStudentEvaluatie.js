@@ -16,6 +16,7 @@ export function useStudentEvaluatie() {
   const bezig = ref({})
   const opgeslagen = ref({})
   const foutMelding = ref({})
+  const scoreGeselecteerd = ref({})
 
   const scoreOpties = [
     { waarde: 5, label: 'Uitstekend', beschrijving: 'Volledig zelfstandig, geen bijsturing nodig.' },
@@ -45,6 +46,7 @@ export function useStudentEvaluatie() {
   }
 
   function setScore(competentieId, waarde) {
+    scoreGeselecteerd.value[competentieId] = true
     const bestaande = getEvaluatie(competentieId)
     if (bestaande) {
       bestaande.score = waarde
@@ -78,8 +80,8 @@ export function useStudentEvaluatie() {
 
   async function slaOp(competentieId) {
     const evaluatie = getEvaluatie(competentieId)
-    if (!evaluatie || !evaluatie.feedback?.trim()) {
-      foutMelding.value[competentieId] = 'Invullen feedback is verplicht!'
+    if (!evaluatie || !evaluatie.feedback?.trim() || !scoreGeselecteerd.value[competentieId]) {
+      foutMelding.value[competentieId] = 'Invullen feedback en score is verplicht!'
       return
     }
     foutMelding.value[competentieId] = ''
@@ -106,7 +108,7 @@ export function useStudentEvaluatie() {
       if (!response.ok) throw new Error(data.error || 'Fout bij opslaan')
       opgeslagen.value[competentieId] = true
     } catch (err) {
-      alert(err.message || 'Kon niet opslaan.')
+      foutMelding.value[competentieId] = err.message || 'Kon niet opslaan.'
     } finally {
       bezig.value[competentieId] = false
     }
@@ -131,6 +133,9 @@ export function useStudentEvaluatie() {
       for (const e of evalData) {
         if (e.beoordelaar_id === user.id) {
           opgeslagen.value[e.competentie_id] = true
+          if (e.score !== null && e.score !== undefined) {
+            scoreGeselecteerd.value[e.competentie_id] = true
+          }
         }
       }
     } catch (err) {
@@ -160,6 +165,7 @@ export function useStudentEvaluatie() {
     bezig,
     opgeslagen,
     foutMelding,
+    scoreGeselecteerd,
     scoreOpties,
     toggleCompetentie,
     getEvaluatie,

@@ -74,9 +74,9 @@ router.get('/evaluaties', requireAuth, requireStudent, async (req, res) => {
 router.post('/evaluaties', requireAuth, requireStudent, async (req, res) => {
   const supabase = req.app.get('supabase');
   const studentId = req.user.id;
-  const { competentie_id, type, feedback } = req.body;
+  const { competentie_id, type, score, feedback } = req.body;
 
-  if (!competentie_id || !type || !feedback) {
+  if (!competentie_id || !type || !feedback || score === undefined) {
     return res.status(400).json({ error: 'competentie_id, type en feedback zijn verplicht' });
   }
 
@@ -104,7 +104,7 @@ router.post('/evaluaties', requireAuth, requireStudent, async (req, res) => {
   if (bestaande) {
     ({ data: result, error } = await supabase
       .from('evaluaties')
-      .update({ feedback, bijgewerkt_op: new Date() })
+      .update({ score, feedback })
       .eq('id', bestaande.id)
       .select()
       .single());
@@ -116,6 +116,7 @@ router.post('/evaluaties', requireAuth, requireStudent, async (req, res) => {
         competentie_id,
         beoordelaar_id: studentId,
         type,
+        score,
         feedback,
         zichtbaar_voor_student: false,
       })

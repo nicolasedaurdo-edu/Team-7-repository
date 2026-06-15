@@ -74,7 +74,7 @@
               class="col-score"
               v-for="optie in scoreOpties"
               :key="optie.waarde"
-              :class="{ geselecteerd: Number(getEvaluatie(competentie.id)?.score) === optie.waarde }"
+              :class="{ geselecteerd: scoreGeselecteerd[competentie.id] && Number(getEvaluatie(competentie.id)?.score) === optie.waarde }"
               @click="!opgeslagen[competentie.id] && setScore(competentie.id, optie.waarde)"
             >
               <p class="optie-beschrijving">{{ optie.beschrijving }}</p>
@@ -82,7 +82,7 @@
                 type="radio"
                 :name="'score-' + competentie.id"
                 :value="optie.waarde"
-                :checked="Number(getEvaluatie(competentie.id)?.score) === optie.waarde"
+                :checked="scoreGeselecteerd[competentie.id] && Number(getEvaluatie(competentie.id)?.score) === optie.waarde"
                 :disabled="opgeslagen[competentie.id]"
               @change="setScore(competentie.id, optie.waarde)"
               />
@@ -140,6 +140,7 @@ const {
   bezig,
   opgeslagen,
   foutMelding,
+  scoreGeselecteerd,
   scoreOpties,
   toggleCompetentie,
   getEvaluatie,

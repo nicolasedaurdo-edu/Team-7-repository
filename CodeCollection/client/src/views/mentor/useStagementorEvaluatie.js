@@ -70,8 +70,8 @@ export function useStagementorEvaluatie() {
 
   async function slaOp(competentieId) {
     const evaluatie = getMentorEvaluatie(competentieId)
-    if (!evaluatie || !evaluatie.feedback?.trim()) {
-      foutMelding.value[competentieId] = 'Invullen feedback is verplicht!'
+    if (!evaluatie || !evaluatie.feedback?.trim() || evaluatie.score === undefined || evaluatie.score === null) {
+      foutMelding.value[competentieId] = 'Invullen feedback en score is verplicht!'
       return
     }
     foutMelding.value[competentieId] = ''
