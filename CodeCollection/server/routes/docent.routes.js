@@ -72,15 +72,15 @@ router.get('/studenten', requireAuth, requireDocent, async (req, res) => {
   const stageIds = stages.map(s => s.id);
   const studentIds = stages.map(s => s.student?.id).filter(Boolean);
 
-  const { data: opleidingen } = await supabase
-    .from('opleidingen')
-    .select('gebruiker_id, naam')
-    .in('gebruiker_id', studentIds.length > 0 ? studentIds : [0]);
+const { data: gebruikerOpleidingen } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('gebruiker_id, opleidingen(naam)')
+  .in('gebruiker_id', studentIds.length > 0 ? studentIds : [0]);
 
-  const opleidingPerStudent = {};
-  for (const o of opleidingen || []) {
-    opleidingPerStudent[o.gebruiker_id] = o.naam;
-  }
+const opleidingPerStudent = {};
+for (const go of gebruikerOpleidingen || []) {
+  opleidingPerStudent[go.gebruiker_id] = go.opleidingen?.naam ?? '';
+}
 
   const { data: logboeken } = await supabase
     .from('logboeken')
@@ -153,11 +153,13 @@ router.get('/student/:studentId/info', requireAuth, requireDocent, async (req, r
     .eq('id', studentId)
     .single();
 
-  const { data: opleiding } = await supabase
-    .from('opleidingen')
-    .select('naam')
-    .eq('gebruiker_id', studentId)
-    .maybeSingle();
+const { data: opleidingKoppeling } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('opleidingen(naam)')
+  .eq('gebruiker_id', studentId)
+  .maybeSingle();
+
+const opleiding = opleidingKoppeling?.opleidingen ?? null;
 
   const { data: docent } = await supabase
     .from('gebruikers')
@@ -361,11 +363,13 @@ router.post('/student/:studentId/eindevaluatie/genereer', requireAuth, requireDo
       .eq('id', studentId)
       .single();
 
-    const { data: opleiding } = await supabase
-      .from('opleidingen')
-      .select('naam')
-      .eq('gebruiker_id', studentId)
-      .maybeSingle();
+const { data: opleidingKoppeling } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('opleidingen(naam)')
+  .eq('gebruiker_id', studentId)
+  .maybeSingle();
+
+const opleiding = opleidingKoppeling?.opleidingen ?? null;
 
     const { data: voorstel } = await supabase
       .from('stagevoorstellen')
@@ -456,11 +460,13 @@ router.post('/student/:studentId/tussentijdsevaluatie/genereer', requireAuth, re
       .eq('id', studentId)
       .single();
 
-    const { data: opleiding } = await supabase
-      .from('opleidingen')
-      .select('naam')
-      .eq('gebruiker_id', studentId)
-      .maybeSingle();
+ const { data: opleidingKoppeling } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('opleidingen(naam)')
+  .eq('gebruiker_id', studentId)
+  .maybeSingle();
+
+const opleiding = opleidingKoppeling?.opleidingen ?? null;
 
     const { data: voorstel } = await supabase
       .from('stagevoorstellen')

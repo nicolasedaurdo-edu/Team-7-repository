@@ -78,15 +78,15 @@ router.get('/studenten', requireAuth, requireStagementor, async (req, res) => {
   const stageIds = stages.map(s => s.id);
   const studentIds = stages.map(s => s.student?.id).filter(Boolean);
 
-  const { data: opleidingen } = await supabase
-    .from('opleidingen')
-    .select('gebruiker_id, naam')
-    .in('gebruiker_id', studentIds.length > 0 ? studentIds : [0]);
+const { data: gebruikerOpleidingen } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('gebruiker_id, opleidingen(naam)')
+  .in('gebruiker_id', studentIds.length > 0 ? studentIds : [0]);
 
-  const opleidingPerStudent = {};
-  for (const o of opleidingen || []) {
-    opleidingPerStudent[o.gebruiker_id] = o.naam;
-  }
+const opleidingPerStudent = {};
+for (const go of gebruikerOpleidingen || []) {
+  opleidingPerStudent[go.gebruiker_id] = go.opleidingen?.naam ?? '';
+}
 
   const { data: logboeken } = await supabase
     .from('logboeken')

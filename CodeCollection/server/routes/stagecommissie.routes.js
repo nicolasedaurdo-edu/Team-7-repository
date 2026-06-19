@@ -45,8 +45,7 @@ router.get('/studenten', requireAuth, requireDocent, async (req, res) => {
         id,
         voornaam,
         achternaam,
-        email,
-        opleiding_id
+        email
       ),
       stagementor:gebruikers!stagementor_id (
         voornaam,
@@ -70,17 +69,17 @@ router.get('/studenten', requireAuth, requireDocent, async (req, res) => {
   const stageIds = stages.map(s => s.id);
   const studentIds = stages.map(s => s.student?.id).filter(Boolean);
 
-  const opleidingIds = stages.map(s => s.student?.opleiding_id).filter(Boolean);
 
-  const { data: opleidingen } = await supabase
-    .from('opleidingen')
-    .select('id, naam')
-    .in('id', opleidingIds.length > 0 ? opleidingIds : [0]);
 
-  const opleidingPerId = {};
-  for (const o of opleidingen || []) {
-    opleidingPerId[o.id] = o.naam;
-  }
+const { data: gebruikerOpleidingen } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('gebruiker_id, opleidingen(naam)')
+  .in('gebruiker_id', studentIds.length > 0 ? studentIds : [0]);
+
+const opleidingPerStudent = {};
+for (const go of gebruikerOpleidingen || []) {
+  opleidingPerStudent[go.gebruiker_id] = go.opleidingen?.naam ?? '';
+}
   const { data: logboeken } = await supabase
     .from('logboeken')
     .select('stage_id, week_nummer, afgetekend')
@@ -109,7 +108,7 @@ router.get('/studenten', requireAuth, requireDocent, async (req, res) => {
       voornaam:             stage.student?.voornaam   ?? '',
       achternaam:           stage.student?.achternaam ?? '',
       email:                stage.student?.email      ?? '',
-      opleiding: opleidingPerId[stage.student?.opleiding_id] ?? '',
+      opleiding: opleidingPerStudent[stage.student?.id] ?? '',
       bedrijf:              stage.stagevoorstel?.bedrijfsnaam ?? '',
       start_datum:          stage.start_datum,
       eind_datum:           stage.eind_datum,
@@ -181,12 +180,13 @@ router.get('/studenten/:stageId/voorstel', requireAuth, requireDocent, async (re
   }
 
   // 2. Haal opleiding op via de student-id uit de join
-  const { data: opleiding } = await supabase
-    .from('opleidingen')
-    .select('naam')
-    .eq('gebruiker_id', stage.student?.id)
-    .maybeSingle();
+const { data: opleidingKoppeling } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('opleidingen(naam)')
+  .eq('gebruiker_id', stage.student?.id)
+  .maybeSingle();
 
+const opleiding = opleidingKoppeling?.opleidingen ?? null;
   // 3. Stel response samen
   res.json({
     student: {
