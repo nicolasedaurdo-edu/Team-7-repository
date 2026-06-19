@@ -37,7 +37,7 @@ router.get('/competenties/:studentId', requireAuth, requireDocent, async (req, r
   const supabase = req.app.get('supabase');
   const { studentId } = req.params;
 
-  // Stap 1: haal opleiding_id op via gebruiker_opleidingen, fallback naar gebruikers
+  // Stap 1: haal opleiding op via gebruiker_opleidingen, fallback naar gebruikers
   const { data: koppeling } = await supabase
     .from('gebruiker_opleidingen')
     .select('opleiding_id')

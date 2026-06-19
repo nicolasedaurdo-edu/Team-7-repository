@@ -141,11 +141,26 @@ router.get('/mijn-stage', requireAuth, requireStudent, async (req, res) => {
 router.get('/competenties', requireAuth, async (req, res) => {
   const supabase = req.app.get('supabase');
 
-  const { data, error } = await supabase
+  // Haal opleiding_id op via gebruiker_opleidingen
+  const { data: koppeling } = await supabase
+    .from('gebruiker_opleidingen')
+    .select('opleiding_id')
+    .eq('gebruiker_id', req.user.id)
+    .maybeSingle();
+
+  const opleidingId = koppeling?.opleiding_id;
+
+  let query = supabase
     .from('competenties')
     .select('id, naam, beschrijving, volgorde, opleiding_id, actief')
     .eq('actief', true)
     .order('volgorde', { ascending: true });
+
+  if (opleidingId) {
+    query = query.eq('opleiding_id', opleidingId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Fout bij ophalen competenties:', error);

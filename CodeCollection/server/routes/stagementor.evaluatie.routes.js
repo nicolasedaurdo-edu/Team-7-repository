@@ -47,12 +47,17 @@ router.get('/competenties', requireAuth, requireStagementor, async (req, res) =>
 
   if (!opleidingId) {
     // Fallback: rechtstreeks op gebruikers tabel
-    const { data: gebruiker } = await supabase
-      .from('gebruikers')
-      .select('opleiding_id')
-      .eq('id', studentId)
-      .maybeSingle();
-    opleidingId = gebruiker?.opleiding_id;
+const { data: koppeling } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('opleiding_id')
+  .eq('gebruiker_id', studentId)
+  .maybeSingle();
+
+const opleidingId = koppeling?.opleiding_id;
+
+if (!opleidingId) {
+  return res.status(404).json({ error: 'Geen opleiding gevonden voor deze student' });
+}
   }
 
   if (!opleidingId) {

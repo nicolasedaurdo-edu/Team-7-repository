@@ -105,11 +105,11 @@ router.get('/:stageId/detail', verifyToken, async (req, res) => {
     return res.status(404).json({ error: 'Stage niet gevonden' });
   }
 
-  const { data: student } = await supabase
-    .from('gebruikers')
-    .select('voornaam, achternaam, email, opleiding_id')
-    .eq('id', stage.student_id)
-    .single();
+const { data: student } = await supabase
+  .from('gebruikers')
+  .select('voornaam, achternaam, email')
+  .eq('id', stage.student_id)
+  .single();
 
   const { data: mentor } = await supabase
     .from('gebruikers')
@@ -342,12 +342,25 @@ router.get('/:stageId/download-pdf', verifyToken, async (req, res) => {
       console.log('Voorstel gevonden:', voorstel);
     }
 
-    // Haal studentgegevens op (inclusief opleiding naam via join)
-    const { data: student, error: studentError } = await supabase
-      .from('gebruikers')
-      .select('voornaam, achternaam, email, opleiding_id, opleidingen!gebruikers_opleiding_id_fkey (naam)')
-      .eq('id', stage.student_id)
-      .single();
+const { data: student, error: studentError } = await supabase
+  .from('gebruikers')
+  .select('voornaam, achternaam, email')
+  .eq('id', stage.student_id)
+  .single();
+
+if (studentError) {
+  console.error('Student fetch error:', studentError);
+} else {
+  console.log('Student gevonden:', student);
+}
+
+const { data: studentOpleiding } = await supabase
+  .from('gebruiker_opleidingen')
+  .select('opleidingen(naam)')
+  .eq('gebruiker_id', stage.student_id)
+  .maybeSingle();
+
+const opleidingNaam = studentOpleiding?.opleidingen?.naam || '—';
 
     if (studentError) {
       console.error('Student fetch error:', studentError);
@@ -412,7 +425,7 @@ router.get('/:stageId/download-pdf', verifyToken, async (req, res) => {
     const parseTags = (raw) => raw ? raw.split(/[,\n]+/).map(s => s.trim()).filter(Boolean) : [];
 
     // Resolved opleiding naam (via join) with fallback
-    const opleidingNaam = student?.opleidingen?.naam || '—';
+
 
     // Header
     doc.rect(0, 0, doc.page.width, 70).fill(blauw);

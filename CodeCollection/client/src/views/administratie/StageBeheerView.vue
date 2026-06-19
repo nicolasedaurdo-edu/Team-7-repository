@@ -485,9 +485,11 @@ onMounted(() => {
   inset: 0;
   background: rgba(0,0,0,0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* ← center → flex-start */
   justify-content: center;
   z-index: 1000;
+  overflow-y: auto;          /* ← toevoegen */
+  padding: 2rem 0;           /* ← toevoegen voor ademruimte */
 }
 .modal {
   background: white;

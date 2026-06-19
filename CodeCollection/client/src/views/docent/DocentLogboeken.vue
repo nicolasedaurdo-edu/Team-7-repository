@@ -314,7 +314,7 @@ async function genereerTussentijdsevaluatie() {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || 'Fout bij genereren')
-    tussenSucces.value = 'Tussentijdsevaluatie succesvol gegenereerd.'
+
   } catch (err) {
     tussenFout.value = err.message
   } finally {
