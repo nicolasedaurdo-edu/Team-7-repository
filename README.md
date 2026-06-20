@@ -6,16 +6,16 @@ in één tool samen rond stagevoorstellen, logboeken, evaluaties en documenten v
 ondertekeningen.
 
 ## Functionaliteit
-De applicatie kent vijf rollen, elk met een eigen omgeving. Gebruikers krijgen op basis van hun inloggegevens automatisch de gepaste rol. Een docent heeft daarnaast ook de rol van stagecommissie.
+De applicatie kent vijf rollen, elk met een eigen omgeving. Gebruikers krijgen op basis van hun inloggegevens automatisch de gepaste rol. Een docent kan daarnaast ook de rol hebben van stagecommissie of admin.
 
 
 
 | Rol | Mogelijkheden |
 |-----|---------------|
-| Student | Eigen stage bekijken, logboeken bijhouden en indienen, zelfevaluatie invullen, documenten/ondertekeningen beheren |
+| Student | Stagevoorstel indienen, Eigen stage bekijken, logboeken bijhouden en indienen, zelfevaluatie invullen, documenten/ondertekeningen beheren |
 | Docent | Toegewezen studenten opvolgen, logboeken nakijken, evaluaties invullen, evaluatiefases activeren en eindevaluaties genereren |
 | Stagementor | Studenten begeleiden, logboeken aftekenen, evaluaties invullen, documenten bekijken/ondertekeningen doen |
-| Stagecommissie | Stagevoorstellen beoordelen (accepteren/weigeren/aanpassingen vragen) en studenten opvolgen |
+| Stagecommissie | Stagevoorstellen beoordelen (accepteren/weigeren/aanpassingen vragen) |
 | Administratie | Accountbeheer, competentiebeheer en stagebeheer (stages koppelen en bewerken) |
 
 ## Technologie
@@ -47,13 +47,12 @@ CodeCollection/
         └── ...
 ```
 
-## Vereisten
-
-- [Node.js](https://nodejs.org/) (LTS aanbevolen)
-- Een Supabase-project (URL + service key)
 
 ## Installatie & opstarten
 
+Op de wifi van EHB of met de EHB VPN kan je de website bekijken op [http://10.2.160.248:5173](http://10.2.160.248:5173) .
+
+Alternatief kan je het locaal laten draaien:
 De applicatie bestaat uit twee delen die je apart start: de backend en de
 frontend.
 
@@ -91,7 +90,7 @@ Maak in `CodeCollection/server` een bestand `.env` met:
 | `JWT_SECRET` | Geheime sleutel voor het ondertekenen van JWT-tokens |
 | `PORT` | (optioneel) Poort voor de backend, standaard `3000` |
 
-> Commit je `.env` nooit naar git — die bevat geheime sleutels.
+> Commit je `.env` nooit naar git.
 
 ## API-overzicht
 
@@ -105,7 +104,7 @@ Alle endpoints staan onder `/api`. Globale opdeling per prefix:
 | `/api/docent` | Docent: studenten en evaluaties |
 | `/api/stagementor` | Stagementor: studenten en evaluaties |
 | `/api/stagecommissie` | Stagevoorstellen beoordelen |
-| `/api/stagevoorstellen` | Stagevoorstellen indienen/beheren |
+| `/api/stagevoorstellen` | Stagevoorstellen indienen |
 | `/api/admin` | Accountbeheer, competentiebeheer, stagebeheer |
 
 ## Database
@@ -123,5 +122,4 @@ De data staat in Supabase (PostgreSQL). Belangrijkste tabellen:
 - logboeken + competenties_logboeken — wekelijkse logboeken en hun competenties
 - competenties — leerdoelen/competenties per opleiding
 - evaluaties — scores en feedback per competentie en stage
-- ondertekeningen — handtekeningen per stage en rol
 - stageovereenkomsten — geüploade overeenkomst-documenten
