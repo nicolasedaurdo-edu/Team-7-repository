@@ -28,7 +28,9 @@ function verifyToken(req, res, next) {
   }
 }
 
-
+function generatePassword() {
+  return Math.random().toString(36).slice(-10);
+}
 
 // ⬆️ Dit moet de EERSTE route zijn in het bestand, vóór router.get('/:stageId/...')
 router.get('/student/documenten', verifyToken, async (req, res) => {
@@ -589,7 +591,7 @@ router.post('/', verifyToken, async (req, res) => {
         voornaam: voornaam_stagementor,
         achternaam: achternaam_stagementor,
         email: email_stagementor,
-        wachtwoord_hash: 'NOT YET ACTIVATED',
+        wachtwoord_hash: generatePassword(),
         actief: false
       }])
       .select()
@@ -724,13 +726,22 @@ router.put('/:id', verifyToken, async (req, res) => {
   const stageId = req.params.id;
 
   const {
-    bedrijfsnaam, stage_begin, stage_einde, beschrijving,
+    bedrijfsnaam, voornaam_stagementor, achternaam_stagementor, email_stagementor,
+    stage_begin, stage_einde, beschrijving,
     technische_skills, tools, straat, huisnummer, gemeente, land
   } = req.body;
 
+  if (!bedrijfsnaam || !stage_begin || !stage_einde || !beschrijving ||
+      !voornaam_stagementor || !achternaam_stagementor || !email_stagementor || !straat || !gemeente) {
+    return res.status(400).json({ error: 'Verplichte velden ontbreken' });
+  }
+
+  // Normaliseer email consequent — voorkomt "ghost" duplicaten door hoofdletterverschil
+  const emailNormalized = email_stagementor.trim().toLowerCase();
+
   const { data: stage, error: findError } = await supabase
     .from('stages')
-    .select('id, student_id, stagevoorstel_id, status')
+    .select('id, student_id, stagevoorstel_id, status, stagementor_id')
     .eq('id', stageId)
     .single();
 
@@ -746,6 +757,63 @@ router.put('/:id', verifyToken, async (req, res) => {
     return res.status(400).json({ error: 'Niet aanpasbaar in deze status' });
   }
 
+  console.log(`[PUT /${stageId}] Huidige stagementor_id: ${stage.stagementor_id}, opgegeven email: ${emailNormalized}`);
+
+  // ── Stagementor zoeken (case-insensitive, expliciete foutafhandeling) ──
+  let stagementorId;
+  const { data: bestaandeMentor, error: lookupError } = await supabase
+    .from('gebruikers')
+    .select('id')
+    .ilike('email', emailNormalized)
+    .maybeSingle(); // geeft null terug bij 0 rijen, gooit GEEN error meer
+
+  if (lookupError) {
+    console.error('[PUT] Onverwachte fout bij mentor-lookup:', lookupError);
+    return res.status(500).json({ error: 'Fout bij opzoeken stagementor: ' + lookupError.message });
+  }
+
+  if (bestaandeMentor) {
+    stagementorId = bestaandeMentor.id;
+    console.log(`[PUT] Bestaande mentor gevonden, id=${stagementorId}`);
+
+    const { error: rolUpsertError } = await supabase
+      .from('gebruiker_rollen')
+      .upsert([{ gebruiker_id: stagementorId, rol: 'stagementor' }], { onConflict: 'gebruiker_id,rol' });
+
+    if (rolUpsertError) {
+      console.error('Rol upsert error (bestaande mentor):', rolUpsertError);
+    }
+  } else {
+    const { data: nieuweMentor, error: mentorError } = await supabase
+      .from('gebruikers')
+      .insert([{
+        voornaam: voornaam_stagementor,
+        achternaam: achternaam_stagementor,
+        email: emailNormalized,
+        wachtwoord_hash: 'NOT YET ACTIVATED',
+        actief: false
+      }])
+      .select()
+      .single();
+
+    if (mentorError) {
+      console.error('[PUT] Fout bij aanmaken nieuwe mentor:', mentorError);
+      return res.status(500).json({ error: 'Fout stagementor: ' + mentorError.message });
+    }
+    stagementorId = nieuweMentor.id;
+    console.log(`[PUT] Nieuwe mentor aangemaakt, id=${stagementorId}`);
+
+    const { error: rolError } = await supabase
+      .from('gebruiker_rollen')
+      .insert([{ gebruiker_id: stagementorId, rol: 'stagementor' }]);
+
+    if (rolError) {
+      console.error('Fout bij koppelen rol stagementor:', rolError);
+      return res.status(500).json({ error: 'Fout bij toekennen rol: ' + rolError.message });
+    }
+  }
+
+  // ── Stagevoorstel bijwerken ──
   const { error: voorstelError } = await supabase
     .from('stagevoorstellen')
     .update({
@@ -756,22 +824,34 @@ router.put('/:id', verifyToken, async (req, res) => {
     .eq('id', stage.stagevoorstel_id);
 
   if (voorstelError) {
+    console.error('[PUT] Fout bij updaten stagevoorstel:', voorstelError);
     return res.status(500).json({ error: voorstelError.message });
   }
 
+  // ── Stage bijwerken — hier wordt stagementor_id effectief gewijzigd ──
   const { data: updatedStage, error: stageError } = await supabase
     .from('stages')
     .update({
       start_datum: stage_begin,
       eind_datum: stage_einde,
+      stagementor_id: stagementorId,
       status: 'stagevoorstel ingediend'
     })
     .eq('id', stageId)
-    .select()
+    .select('id, stagementor_id, status, start_datum, eind_datum')
     .single();
 
   if (stageError) {
+    console.error('[PUT] Fout bij updaten stage:', stageError);
     return res.status(500).json({ error: stageError.message });
+  }
+
+  console.log(`[PUT /${stageId}] Resultaat na update — stagementor_id is nu: ${updatedStage.stagementor_id}`);
+
+  if (updatedStage.stagementor_id !== stagementorId) {
+    // Dit zou normaal nooit mogen gebeuren; als dit alsnog optreedt wijst het op RLS die
+    // de UPDATE stilletjes filtert (0 rijen geraakt zonder expliciete error).
+    console.error('[PUT] WAARSCHUWING: stagementor_id in de database komt niet overeen met de verwachte waarde. Mogelijk RLS-probleem.');
   }
 
   res.json(updatedStage);
