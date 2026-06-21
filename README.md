@@ -123,3 +123,7 @@ De data staat in Supabase (PostgreSQL). Belangrijkste tabellen:
 - competenties — leerdoelen/competenties per opleiding
 - evaluaties — scores en feedback per competentie en stage
 - stageovereenkomsten — geüploade overeenkomst-documenten
+
+
+<img width="1693" height="2860" alt="erd_gecorrigeerd (1)" src="https://github.com/user-attachments/assets/84dd6e60-53aa-4bae-8bf9-f617511b992c" />
+
