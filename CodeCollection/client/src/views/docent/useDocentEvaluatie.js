@@ -103,39 +103,39 @@ export function useDocentEvaluatie(studentId) {
   }
 
   async function slaOp(competentieId) {
-    const evaluatie = getDocentEvaluatie(competentieId)
-    if (!evaluatie || !evaluatie.feedback?.trim()) {
-      foutMelding.value[competentieId] = 'Invullen feedback is verplicht!'
-      return
-    }
-    foutMelding.value[competentieId] = ''
-    bezigOpslaan.value[competentieId] = true
-    opgeslagen.value[competentieId] = false
-
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`/api/docent/evaluaties/${studentId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          competentie_id: competentieId,
-          type: actieveTab.value,
-          score: evaluatie.score,
-          feedback: evaluatie.feedback,
-        }),
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Fout bij opslaan')
-      opgeslagen.value[competentieId] = true
-    } catch (err) {
-      alert(err.message || 'Kon niet opslaan.')
-    } finally {
-      bezigOpslaan.value[competentieId] = false
-    }
+  const evaluatie = getDocentEvaluatie(competentieId)
+  if (!evaluatie || !evaluatie.feedback?.trim()) {
+    foutMelding.value[competentieId] = 'Invullen feedback is verplicht!'
+    return
   }
+  foutMelding.value[competentieId] = ''
+  bezigOpslaan.value[competentieId] = true
+  opgeslagen.value[`${competentieId}_${actieveTab.value}`] = false   // was: opgeslagen.value[competentieId] = false
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`/api/docent/evaluaties/${studentId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        competentie_id: competentieId,
+        type: actieveTab.value,
+        score: evaluatie.score,
+        feedback: evaluatie.feedback,
+      }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Fout bij opslaan')
+    opgeslagen.value[`${competentieId}_${actieveTab.value}`] = true   // was: opgeslagen.value[competentieId] = true
+  } catch (err) {
+    alert(err.message || 'Kon niet opslaan.')
+  } finally {
+    bezigOpslaan.value[competentieId] = false
+  }
+}
 
   async function laadData() {
     loading.value = true
@@ -161,10 +161,10 @@ export function useDocentEvaluatie(studentId) {
       evaluatieStatus.value = evalData.evaluatie_status || 'geen'
 
       for (const e of evaluaties.value) {
-        if (e.rol === 'docent') {
-          opgeslagen.value[e.competentie_id] = true
-        }
-      }
+  if (e.rol === 'docent') {
+    opgeslagen.value[`${e.competentie_id}_${e.type}`] = true   // was: opgeslagen.value[e.competentie_id] = true
+  }
+}
     } catch (err) {
       fout.value = err.message || 'Kon data niet laden.'
     } finally {

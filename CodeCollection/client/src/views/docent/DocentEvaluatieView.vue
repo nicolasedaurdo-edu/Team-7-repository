@@ -124,51 +124,51 @@
             </div>
 
             <div class="col-eval col-docent">
-              <div class="score-opties">
-                <button
-                  v-for="optie in scoreOpties"
-                  :key="optie.waarde"
-                  type="button"
-                  class="score-optie-btn"
-                  :class="{ gekozen: Number(getDocentEvaluatie(competentie.id)?.score) === optie.waarde }"
-                  :disabled="opgeslagen[competentie.id]"
-                  @click="setScore(competentie.id, optie.waarde)"
-                >
-                  <span class="optie-titel">{{ optie.waarde }} — {{ optie.label }}</span>
-                  <span v-if="getBeschrijving(competentie, optie.waarde)" class="optie-beschrijving">
-                    {{ getBeschrijving(competentie, optie.waarde) }}
-                  </span>
-                </button>
-              </div>
+  <div class="score-opties">
+    <button
+      v-for="optie in scoreOpties"
+      :key="optie.waarde"
+      type="button"
+      class="score-optie-btn"
+      :class="{ gekozen: Number(getDocentEvaluatie(competentie.id)?.score) === optie.waarde }"
+      :disabled="opgeslagen[`${competentie.id}_${actieveTab}`]"
+      @click="setScore(competentie.id, optie.waarde)"
+    >
+      <span class="optie-titel">{{ optie.waarde }} — {{ optie.label }}</span>
+      <span v-if="getBeschrijving(competentie, optie.waarde)" class="optie-beschrijving">
+        {{ getBeschrijving(competentie, optie.waarde) }}
+      </span>
+    </button>
+  </div>
 
-              <textarea
-                class="tekstvak"
-                placeholder="Eindconclusie / feedback van de docent..."
-                :value="getDocentEvaluatie(competentie.id)?.feedback || ''"
-                @input="setFeedback(competentie.id, $event.target.value)"
-                :disabled="opgeslagen[competentie.id]"
-              ></textarea>
+  <textarea
+    class="tekstvak"
+    placeholder="Eindconclusie / feedback van de docent..."
+    :value="getDocentEvaluatie(competentie.id)?.feedback || ''"
+    @input="setFeedback(competentie.id, $event.target.value)"
+    :disabled="opgeslagen[`${competentie.id}_${actieveTab}`]"
+  ></textarea>
 
-              <div class="opslaan-rij">
-                <button
-                  v-if="!opgeslagen[competentie.id]"
-                  class="opslaan-btn"
-                  @click="slaOp(competentie.id)"
-                  :disabled="bezigOpslaan[competentie.id]"
-                >
-                  {{ bezigOpslaan[competentie.id] ? 'Opslaan...' : 'Opslaan' }}
-                </button>
-                <button
-                  v-if="opgeslagen[competentie.id]"
-                  class="bewerken-btn"
-                  @click="opgeslagen[competentie.id] = false"
-                >
-                  Bewerken
-                </button>
-                <span v-if="opgeslagen[competentie.id]" class="opgeslagen-melding">✓ Definitief opgeslagen</span>
-                <span v-if="foutMelding[competentie.id]" class="fout-melding">{{ foutMelding[competentie.id] }}</span>
-              </div>
-            </div>
+  <div class="opslaan-rij">
+    <button
+      v-if="!opgeslagen[`${competentie.id}_${actieveTab}`]"
+      class="opslaan-btn"
+      @click="slaOp(competentie.id)"
+      :disabled="bezigOpslaan[competentie.id]"
+    >
+      {{ bezigOpslaan[competentie.id] ? 'Opslaan...' : 'Opslaan' }}
+    </button>
+    <button
+      v-if="opgeslagen[`${competentie.id}_${actieveTab}`]"
+      class="bewerken-btn"
+      @click="opgeslagen[`${competentie.id}_${actieveTab}`] = false"
+    >
+      Bewerken
+    </button>
+    <span v-if="opgeslagen[`${competentie.id}_${actieveTab}`]" class="opgeslagen-melding">✓ Definitief opgeslagen</span>
+    <span v-if="foutMelding[competentie.id]" class="fout-melding">{{ foutMelding[competentie.id] }}</span>
+  </div>
+</div>
 
           </div>
         </div>

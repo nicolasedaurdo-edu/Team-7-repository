@@ -312,14 +312,19 @@ const form = ref({ ...initialForm })
 
 const info = computed(() => stage.value?.stagevoorstellen || {})
 
-// Pre-fill form when changes are required
+// Pre-fill form when changes are required.
+// Belangrijk: de mentorvelden worden hier gevuld met de HUIDIGE stagementor
+// (uit stage.stagementor, afkomstig van GET /api/stagevoorstellen/mijn).
+// Zo moet de student niet elke keer opnieuw dezelfde mentor intypen, en als
+// hij/zij wél een andere mentor invult, wordt dat correct doorgestuurd naar
+// de PUT-route die de stagementor_id bijwerkt.
 watch(stage, (newStage) => {
   if (newStage?.status === 'stagevoorstel aanpassingen vereist') {
     form.value = {
       bedrijfsnaam: info.value.bedrijfsnaam || '',
-      voornaam_stagementor: '',
-      achternaam_stagementor: '',
-      email_stagementor: '',
+      voornaam_stagementor: newStage.stagementor?.voornaam || '',
+      achternaam_stagementor: newStage.stagementor?.achternaam || '',
+      email_stagementor: newStage.stagementor?.email || '',
       stage_begin: newStage.start_datum || '',
       stage_einde: newStage.eind_datum || '',
       beschrijving: info.value.beschrijving || '',
@@ -603,6 +608,17 @@ h3:first-of-type {
   background: #fdecea;
   border-left-color: #f44336;
   color: #b71c1c;
+}
+
+/* ── Hint ────────────────────────────────────────────────────── */
+.hint {
+  font-size: 0.82rem;
+  color: #666;
+  background: #f0f7fc;
+  border-left: 4px solid #29a8e0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  margin: -0.75rem 0 1.5rem;
 }
 
 /* ── Grids ───────────────────────────────────────────────────── */

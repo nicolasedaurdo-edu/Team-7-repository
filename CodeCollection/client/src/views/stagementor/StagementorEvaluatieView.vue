@@ -73,7 +73,7 @@
                 <span class="score-punten">{{ optie.waarde }} punten</span>
                 <span class="score-label">{{ optie.label }}</span>
               </div>
-              <div class="col-zelfevaluatie">Zelfevaluatie</div>
+              <div class="col-studevaluatie">Evaluatie</div>
             </div>
 
             <div
@@ -104,10 +104,10 @@
                 />
               </div>
 
-              <div class="col-zelfevaluatie">
+              <div class="col-studevaluatie">
                 <textarea
                   class="tekstvak"
-                  placeholder="Jouw zelfevaluatie..."
+                  placeholder="Jouw evaluatie..."
                   :value="getEvaluatie(competentie.id)?.feedback || ''"
                   @input="setFeedback(competentie.id, $event.target.value)"
                   :disabled="!huidigeBewerkbaar || opgeslagen[`${competentie.id}_${actieveTab}`]"
@@ -508,7 +508,7 @@ html, body, #app {
   accent-color: #29a8e0;
 }
 
-.col-zelfevaluatie {
+.col-studevaluatie {
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
